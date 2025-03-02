@@ -3,15 +3,19 @@ import mongoose, { Schema } from "mongoose";
 const UserSchema = new Schema({
     name: {
         type: String,
-        require: true,
+        required: true,
     },
     email: {
         type: String,
-        require: true,
+        required: true,
     },
     password: {
         type: String,
-        require: true,
+        required: true,
+    },
+    rule: {
+        type: Number,
+        default: 1,
     },
     createdAt: {
         type: Date,

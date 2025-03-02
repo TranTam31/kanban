@@ -1,8 +1,11 @@
-import { Button, Card, Checkbox, Form, Input, Space, Typography } from "antd";
+import { Button, Card, Checkbox, Form, Input, message, Space, Typography } from "antd";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import SocialLogin from "./components/SocialLogin";
 import handleAPI from "../../apis/handleAPI";
+import { useDispatch } from "react-redux";
+import { addAuth } from "../../redux/reducers/authReducer";
+import { localDataNames } from "../../constants/appInfos";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -11,14 +14,24 @@ const Login = () => {
   const [isRemember, setIsRemember] = useState(false);
 
   const [form] = Form.useForm();
+  const dispatch = useDispatch()
 
   const handleLogin = async (values: { email: string; password: string }) => {
-    console.log(values);
+    setIsLoading(true)
     try {
-      const res = await handleAPI('/auth/register', values, 'post')
-      console.log(res)
-    } catch (error) {
-      console.log(error)
+      const res: any = await handleAPI('/auth/login', values, 'post')
+      
+      res.data && dispatch(addAuth(res.data))
+      message.success(res.message)
+
+      if(isRemember) {
+        localStorage.setItem(localDataNames.authData, JSON.stringify(res.data));
+      }
+    } catch (error:any) {
+      message.error(error.message)
+      console.log(error.message)
+    } finally {
+      setIsLoading(false)
     }
   };
 
@@ -38,7 +51,8 @@ const Login = () => {
             Welcome back! Please enter your details.
           </Paragraph>
         </div>
-        <Form layout="vertical" form={form} onFinish={handleLogin} disabled={isLoading} size="large">
+        <Form
+          layout="vertical" form={form} onFinish={handleLogin} disabled={isLoading} size="large">
           <Form.Item name={'email'} label='Email' rules={[
             {
               required: true,
@@ -69,7 +83,7 @@ const Login = () => {
         </div>
 
         <div className="mt-4 mb-3">
-          <Button 
+          <Button loading={isLoading}
             onClick={() => form.submit()}
             type="primary"
             style={{width: '100%'}}
@@ -78,7 +92,7 @@ const Login = () => {
             Login
           </Button>
         </div>
-        <SocialLogin />
+        <SocialLogin isRemember={isRemember}/>
         <div className="mt-3 text-center">
           <Space>
             <Text>Don't have a account?</Text>
